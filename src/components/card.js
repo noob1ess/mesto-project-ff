@@ -4,10 +4,13 @@ function addCard(dataCard, funDelCard, funLikeCard, funOpenCard) {
   const cardElement = cardTemplate.querySelector(".card").cloneNode(true);
   const deleteButton = cardElement.querySelector(".card__delete-button");
   const likeButton = cardElement.querySelector(".card__like-button");
-  cardElement.querySelector(".card__image").src = dataCard.link;
-  cardElement.querySelector(".card__image").alt = dataCard.name;
+  const cardImage = cardElement.querySelector(".card__image");
   cardElement.querySelector(".card__title").textContent = dataCard.name;
-  cardElement.querySelector(".card__image").addEventListener("click", funOpenCard)
+  cardImage.src = dataCard.link;
+  cardImage.alt = dataCard.name;
+  cardImage.addEventListener("click", ()=>{
+    funOpenCard(dataCard);
+  });
   deleteButton.addEventListener("click", ()=>{
     funDelCard(cardElement);
   });

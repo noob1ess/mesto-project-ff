@@ -1,113 +1,93 @@
 import '../pages/index.css';
 import {initialCards} from './cards.js';
 import {addCard, delCard, likeCard} from '../components/card.js';
-import {openModal, closeModal} from '../components/modal.js';
+import {openModal, closeModal, checkClickToCloseModal} from '../components/modal.js';
 
-// @todo: DOM узлы
 const placeElement = document.querySelector(".places__list");
-
-// @todo: Вывести карточки на страницу
-initialCards.forEach(item => {
-  placeElement.append(addCard(item, delCard, likeCard, handleOpenImg));
-});
-
-//добавление плавности попапам
 const popups = document.querySelectorAll(".popup");
 
-popups.forEach((el)=>{
-  el.classList.add("popup_is-animated");
+const popupOpenImg = document.querySelector(".popup_type_image");
+const popupEditProfile = document.querySelector(".popup_type_edit");
+const popupNewCard = document.querySelector(".popup_type_new-card");
+
+const capitonImgInPopup = popupOpenImg.querySelector(".popup__caption");
+const imgInPopup = popupOpenImg.querySelector(".popup__image");
+
+const nameProfileInput = popupEditProfile.querySelector(".popup__input_type_name");
+const descriptionProfileInput = popupEditProfile.querySelector(".popup__input_type_description");
+const editProfileButton = document.querySelector(".profile__edit-button");
+
+const dataProfile ={
+  name: document.querySelector(".profile__title"),
+  description: document.querySelector(".profile__description"),
+}
+
+const addCardButton = document.querySelector(".profile__add-button");
+
+const editForm = document.querySelector(".popup_type_edit").querySelector(".popup__form");
+const nameInputInForm = editForm.querySelector(".popup__input_type_name");
+const descriptionInputInForm = editForm.querySelector(".popup__input_type_description");
+
+const newCardForm = popupNewCard.querySelector(".popup__form");
+const nameCardInputInForm = newCardForm.querySelector(".popup__input_type_card-name");
+const urlCardInputInForm = newCardForm.querySelector(".popup__input_type_url");
+
+// вывод карточек на страницу
+initialCards.forEach(item => {
+  placeElement.append(addCard(item, delCard, likeCard, openImgPopup));
+});
+
+//добавление плавности попапам и закрытия по оверлею
+popups.forEach((elem)=>{
+  elem.classList.add("popup_is-animated");
+  elem.addEventListener('click', checkClickToCloseModal);
 })
 
 //просмотр карточки
-const popupOpenImg = document.querySelector(".popup_type_image");
-
-function handleOpenImg(evt){
-  const imgInfo = {
-    name: evt.target.alt,
-    src: evt.target.src,
-  }
-  const capitonImg = popupOpenImg.querySelector(".popup__caption");
-  const dataImg = popupOpenImg.querySelector(".popup__image");
-  capitonImg.textContent = imgInfo.name;
-  dataImg.src = imgInfo.src;
-  dataImg.alt = imgInfo.name;
-  openModal(popupOpenImg, closeModal);
+function openImgPopup(dataCard){
+  capitonImgInPopup.textContent = dataCard.name;
+  imgInPopup.src = dataCard.link;
+  imgInPopup.alt = dataCard.name;
+  openModal(popupOpenImg);
 }
 
 //попап редактирование профиля
-const editProfileButton = document.querySelector(".profile__edit-button");
-const popupEditProfile = document.querySelector(".popup_type_edit");
-
-function fillEditProfilePopap(evt){
-  const profileInfo = {
-    name: evt.target.closest(".profile__info").querySelector(".profile__title").textContent,
-    description: evt.target.closest(".profile__info").querySelector(".profile__description").textContent,
-  }
-  const nameInput = popupEditProfile.querySelector(".popup__input_type_name");
-  const descriptionInput = popupEditProfile.querySelector(".popup__input_type_description");
-  nameInput.value = profileInfo.name;
-  descriptionInput.value = profileInfo.description;
-  openModal(popupEditProfile, closeModal);
+function openEditProfilePopap(){
+  nameProfileInput.value = dataProfile.name.textContent;
+  descriptionProfileInput.value = dataProfile.description.textContent;
+  openModal(popupEditProfile);
 }
 
-editProfileButton.addEventListener("click", fillEditProfilePopap)
+editProfileButton.addEventListener("click", openEditProfilePopap)
 
 //создание новых карточек
-const addCardButton = document.querySelector(".profile__add-button");
-
-function resetNewCardForm(){
-  const popupNewCard = document.querySelector(".popup_type_new-card");
+function openNewCardForm(){
   popupNewCard.querySelector(".popup__form").reset();
-  openModal(popupNewCard, closeModal);
+  openModal(popupNewCard);
 }
 
-addCardButton.addEventListener("click", resetNewCardForm)
+addCardButton.addEventListener("click", openNewCardForm)
 
-//закрытие по клику на оверлей или крестик
-const popupElements = document.querySelectorAll(".popup");
-
-popupElements.forEach((elem)=>{
-  elem.addEventListener('click', function(evt){
-    closeModal(evt);
-  })
-})
-
-// Находим форму в DOM
-const editFormElement = document.querySelector(".popup_type_edit").querySelector(".popup__form");
-// Находим поля формы в DOM
-const nameInput = editFormElement.querySelector(".popup__input_type_name");
-const jobInput = editFormElement.querySelector(".popup__input_type_description");
-// Обработчик «отправки» формы, хотя пока
-// она никуда отправляться не будет
 function handleEditFormSubmit(evt) {
-    evt.preventDefault(); // Эта строчка отменяет стандартную отправку формы.
-    // Получите значение полей jobInput и nameInput из свойства value
-    const newName = nameInput.value;
-    const newJob = jobInput.value;
-    const profileInfo = document.querySelector(".profile__info");
-    // Выберите элементы, куда должны быть вставлены значения полей
-    // Вставьте новые значения с помощью textContent
-    profileInfo.querySelector(".profile__title").textContent = newName;
-    profileInfo.querySelector(".profile__description").textContent = newJob; 
-    closeModal(evt);
+    evt.preventDefault();
+    const newName = nameInputInForm.value;
+    const newdescription = descriptionInputInForm.value;
+    dataProfile.name.textContent = newName;
+    dataProfile.description.textContent = newdescription; 
+    closeModal(popupEditProfile);
 }
 
-// Прикрепляем обработчик к форме:
-// он будет следить за событием “submit” - «отправка»
-editFormElement.addEventListener('submit', handleEditFormSubmit);
+editForm.addEventListener('submit', handleEditFormSubmit);
 
 //добавление новых карточек
-const imgFormElement = document.querySelector(".popup_type_new-card").querySelector(".popup__form");
-
 function handleNewCardFormSubmit(evt){
   evt.preventDefault();
   const newCard ={
-    name : imgFormElement.querySelector(".popup__input_type_card-name").value,
-    link : imgFormElement.querySelector(".popup__input_type_url").value,
+    name : nameCardInputInForm.value,
+    link : urlCardInputInForm.value,
   }
-  placeElement.prepend(addCard(newCard, delCard, likeCard, handleOpenImg));
-  imgFormElement.reset();
-  closeModal(evt);
+  placeElement.prepend(addCard(newCard, delCard, likeCard, openImgPopup));
+  closeModal(popupNewCard);
 }
 
-imgFormElement.addEventListener('submit', handleNewCardFormSubmit);
+newCardForm.addEventListener('submit', handleNewCardFormSubmit);

@@ -1,17 +1,27 @@
 //открытие попапа
-function openModal(popupElement, closeFunction){
+function openModal(popupElement){
   popupElement.classList.add("popup_is-opened");
-  document.addEventListener("keydown", closeFunction);
+  document.addEventListener("keydown", checkKeyDownDocument);
 }
 
 //поиск открытого окна и закрытие его
-function closeModal(evt){
-  if (evt.key === "Escape" || evt.type === "submit" || 
-      evt.target.classList.contains("popup__close") || evt.target.classList.contains("popup")){
-    const openedModal = document.querySelector(".popup_is-opened");
-    openedModal.classList.remove("popup_is-opened");
-    document.removeEventListener("keydown", closeModal);
+function closeModal(openedPopup){
+  openedPopup.classList.remove("popup_is-opened");
+  document.removeEventListener("keydown", checkKeyDownDocument);
+}
+
+function checkKeyDownDocument(evt){
+  if (evt.key === "Escape"){
+    const openedPopup = document.querySelector(".popup_is-opened");
+    closeModal(openedPopup);
   }
 }
 
-export {openModal, closeModal}
+function checkClickToCloseModal(evt){
+  if (evt.target.classList.contains("popup__close") || evt.target.classList.contains("popup")){
+    const openedPopup = document.querySelector(".popup_is-opened");
+    closeModal(openedPopup);
+  }
+}
+
+export {openModal, closeModal, checkClickToCloseModal}
