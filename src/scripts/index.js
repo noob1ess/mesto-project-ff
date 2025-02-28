@@ -62,7 +62,7 @@ editProfileButton.addEventListener("click", openEditProfilePopap)
 
 //создание новых карточек
 function openNewCardForm(){
-  popupNewCard.querySelector(".popup__form").reset();
+  newCardForm.reset();
   openModal(popupNewCard);
 }
 

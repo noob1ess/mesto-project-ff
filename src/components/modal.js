@@ -4,7 +4,7 @@ function openModal(popupElement){
   document.addEventListener("keydown", checkKeyDownDocument);
 }
 
-//поиск открытого окна и закрытие его
+//закрытие попапа
 function closeModal(openedPopup){
   openedPopup.classList.remove("popup_is-opened");
   document.removeEventListener("keydown", checkKeyDownDocument);
