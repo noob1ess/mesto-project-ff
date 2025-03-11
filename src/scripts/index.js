@@ -1,7 +1,8 @@
 import '../pages/index.css';
-import {initialCards} from './cards.js';
 import {addCard, delCard, likeCard} from '../components/card.js';
 import {openModal, closeModal, checkClickToCloseModal} from '../components/modal.js';
+import {enableValidation, clearValidation} from '../components/validation.js';
+import {getMyProfile, getInitialCards, patchMyProfile, postNewCardOnServer, delCardOnServer, toggleLike, changeAvatar} from '../components/api.js';
 
 const placeElement = document.querySelector(".places__list");
 const popups = document.querySelectorAll(".popup");
@@ -9,6 +10,7 @@ const popups = document.querySelectorAll(".popup");
 const popupOpenImg = document.querySelector(".popup_type_image");
 const popupEditProfile = document.querySelector(".popup_type_edit");
 const popupNewCard = document.querySelector(".popup_type_new-card");
+const popupChangeAvatar = document.querySelector(".popup_type_change-avatar");
 
 const capitonImgInPopup = popupOpenImg.querySelector(".popup__caption");
 const imgInPopup = popupOpenImg.querySelector(".popup__image");
@@ -17,9 +19,10 @@ const nameProfileInput = popupEditProfile.querySelector(".popup__input_type_name
 const descriptionProfileInput = popupEditProfile.querySelector(".popup__input_type_description");
 const editProfileButton = document.querySelector(".profile__edit-button");
 
-const dataProfile ={
+const profileElements ={
   name: document.querySelector(".profile__title"),
   description: document.querySelector(".profile__description"),
+  avatar: document.querySelector(".profile__image"),
 }
 
 const addCardButton = document.querySelector(".profile__add-button");
@@ -32,10 +35,14 @@ const newCardForm = popupNewCard.querySelector(".popup__form");
 const nameCardInputInForm = newCardForm.querySelector(".popup__input_type_card-name");
 const urlCardInputInForm = newCardForm.querySelector(".popup__input_type_url");
 
-// вывод карточек на страницу
-initialCards.forEach(item => {
-  placeElement.append(addCard(item, delCard, likeCard, openImgPopup));
-});
+const validationConfig = {
+  formSelector: '.popup__form',
+  inputSelector: '.popup__input', 
+  submitButtonSelector: '.popup__button', 
+  inactiveButtonClass: 'popup__button_inactive', 
+  inputErrorClass: 'popup__input_type_error', 
+  errorClass: 'popup__input_text-error_active' 
+}
 
 //добавление плавности попапам и закрытия по оверлею
 popups.forEach((elem)=>{
@@ -53,8 +60,9 @@ function openImgPopup(dataCard){
 
 //попап редактирование профиля
 function openEditProfilePopap(){
-  nameProfileInput.value = dataProfile.name.textContent;
-  descriptionProfileInput.value = dataProfile.description.textContent;
+  nameProfileInput.value = profileElements.name.textContent;
+  descriptionProfileInput.value = profileElements.description.textContent;
+  clearValidation(popupEditProfile, validationConfig);
   openModal(popupEditProfile);
 }
 
@@ -63,31 +71,108 @@ editProfileButton.addEventListener("click", openEditProfilePopap)
 //создание новых карточек
 function openNewCardForm(){
   newCardForm.reset();
+  clearValidation(popupNewCard, validationConfig);
   openModal(popupNewCard);
 }
 
 addCardButton.addEventListener("click", openNewCardForm)
 
+//открытие модалки для смены аватара
+function openPopupChangeAvatar(){
+  popupChangeAvatar.querySelector('.popup__input').value='';
+  clearValidation(popupChangeAvatar, validationConfig);
+  openModal(popupChangeAvatar);
+}
+
+profileElements.avatar.addEventListener('click', openPopupChangeAvatar);
+
+//смена аватарки
+function handleChangeProfileAvatar(evt){
+  evt.preventDefault();
+  const linkAvatar = popupChangeAvatar.querySelector('.popup__input').value;
+  popupChangeAvatar.querySelector('.popup__button').textContent = "Сохранение..."
+  changeAvatar(linkAvatar)
+    .then(dataProfile => {
+      profileElements.avatar.style.backgroundImage = `url(${dataProfile.avatar})`;
+      popupChangeAvatar.querySelector('.popup__button').textContent = "Сохранить"
+      closeModal(popupChangeAvatar);
+    })
+    .catch(handleError)
+}
+
+popupChangeAvatar.addEventListener('submit', handleChangeProfileAvatar)
+
+//изменение данных профиля
 function handleEditFormSubmit(evt) {
-    evt.preventDefault();
-    const newName = nameInputInForm.value;
-    const newdescription = descriptionInputInForm.value;
-    dataProfile.name.textContent = newName;
-    dataProfile.description.textContent = newdescription; 
-    closeModal(popupEditProfile);
+  evt.preventDefault();
+  const newName = nameInputInForm.value;
+  const newDescription = descriptionInputInForm.value;
+  editForm.querySelector('.popup__button').textContent = "Cохранение..."
+  patchMyProfile(newName, newDescription)
+    .then(updatedDataProfile => {
+      profileElements.name.textContent = updatedDataProfile.name;
+      profileElements.description.textContent = updatedDataProfile.about;
+      editForm.querySelector('.popup__button').textContent = "Сохранить"
+      closeModal(popupEditProfile);
+    })
+    .catch(handleError)
 }
 
 editForm.addEventListener('submit', handleEditFormSubmit);
 
-//добавление новых карточек
+//удаление карточки
+function deleteCard(elem) {
+  delCardOnServer(elem.dataset._id)
+    .then(delCard(elem))
+    .catch(handleError)
+}
+
+//лайк карточки
+function checkLikeOnCard(elem){
+  const hasActiveLikeButton  = elem.querySelector('.card__like-button_is-active') !== null;
+  toggleLike(elem.dataset._id, hasActiveLikeButton)
+    .then(card => {
+      elem.querySelector('.card__like-counter').textContent = card.likes.length;
+      likeCard(elem);
+    })
+    .catch(handleError)
+}
+
+//добавление новой карточи
 function handleNewCardFormSubmit(evt){
   evt.preventDefault();
   const newCard ={
     name : nameCardInputInForm.value,
     link : urlCardInputInForm.value,
   }
-  placeElement.prepend(addCard(newCard, delCard, likeCard, openImgPopup));
-  closeModal(popupNewCard);
+  newCardForm.querySelector('.popup__button').textContent = "Сохранение..."
+  postNewCardOnServer(newCard)
+    .then(postedCard => {
+      placeElement.prepend(addCard(postedCard, deleteCard, checkLikeOnCard, openImgPopup, postedCard.owner._id));
+      newCardForm.querySelector('.popup__button').textContent = "Сохранить"
+      closeModal(popupNewCard);
+    })
+    .catch(handleError)
 }
 
 newCardForm.addEventListener('submit', handleNewCardFormSubmit);
+
+//активация валидации
+enableValidation(validationConfig);
+
+//вывод ошибки запроса в консоль
+function handleError(err) {
+  console.error(`Ошибка ${err.code}: ${err.error}`);
+}
+
+//получение данных профиля, списка карточек и отображение на странице
+Promise.all([getMyProfile(), getInitialCards()])
+  .then(([dataProfile, cardList]) =>{
+    profileElements.name.textContent = dataProfile.name;
+    profileElements.description.textContent = dataProfile.about;
+    profileElements.avatar.style.backgroundImage = `url(${dataProfile.avatar})`;
+    cardList.forEach(elem =>{
+      placeElement.append(addCard(elem, deleteCard, checkLikeOnCard, openImgPopup, dataProfile._id))
+    })
+  })
+  .catch(handleError)

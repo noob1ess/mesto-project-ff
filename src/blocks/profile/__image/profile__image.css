@@ -7,6 +7,35 @@
   background-size: cover;
   background-position: center;
   margin: 0 29px 0 0;
+  position: relative;
+}
+
+.profile__image::after{
+  position: absolute;
+  content: '';
+  top: 47px;
+  left: 47px;
+  background-image: url('../../../images/edit-icon.svg');
+  background-repeat: no-repeat;
+  background-size: contain;
+  inline-size: 26px;
+  block-size: 26px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.profile__image::before{
+  content: '';
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0.8);
+  block-size: 100%;
+  inline-size: 100%;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.profile__image:hover::after, .profile__image:hover::before{
+  opacity: 1;
 }
 
 @media screen and (max-width: 740px) {
