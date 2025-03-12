@@ -94,10 +94,12 @@ function handleChangeProfileAvatar(evt){
   changeAvatar(linkAvatar)
     .then(dataProfile => {
       profileElements.avatar.style.backgroundImage = `url(${dataProfile.avatar})`;
-      popupChangeAvatar.querySelector('.popup__button').textContent = "Сохранить"
       closeModal(popupChangeAvatar);
     })
     .catch(handleError)
+    .finally(() => {
+      popupChangeAvatar.querySelector('.popup__button').textContent = "Сохранить"
+    })
 }
 
 popupChangeAvatar.addEventListener('submit', handleChangeProfileAvatar)
@@ -112,10 +114,12 @@ function handleEditFormSubmit(evt) {
     .then(updatedDataProfile => {
       profileElements.name.textContent = updatedDataProfile.name;
       profileElements.description.textContent = updatedDataProfile.about;
-      editForm.querySelector('.popup__button').textContent = "Сохранить"
       closeModal(popupEditProfile);
     })
     .catch(handleError)
+    .finally(() => {
+      editForm.querySelector('.popup__button').textContent = "Сохранить"
+    })
 }
 
 editForm.addEventListener('submit', handleEditFormSubmit);
@@ -123,7 +127,7 @@ editForm.addEventListener('submit', handleEditFormSubmit);
 //удаление карточки
 function deleteCard(elem) {
   delCardOnServer(elem.dataset._id)
-    .then(delCard(elem))
+    .then(() => delCard(elem))
     .catch(handleError)
 }
 
@@ -149,10 +153,12 @@ function handleNewCardFormSubmit(evt){
   postNewCardOnServer(newCard)
     .then(postedCard => {
       placeElement.prepend(addCard(postedCard, deleteCard, checkLikeOnCard, openImgPopup, postedCard.owner._id));
-      newCardForm.querySelector('.popup__button').textContent = "Сохранить"
       closeModal(popupNewCard);
     })
     .catch(handleError)
+    .finally(() => {
+      newCardForm.querySelector('.popup__button').textContent = "Сохранить"
+    })
 }
 
 newCardForm.addEventListener('submit', handleNewCardFormSubmit);

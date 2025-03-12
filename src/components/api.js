@@ -61,10 +61,7 @@ export const postNewCardOnServer = (dataNewCard) => {
   return fetch(config.baseUrl+'/cards', {
     method: 'POST',
     headers: config.headers,
-    body: JSON.stringify({
-      name: dataNewCard.name,
-      link: dataNewCard.link,
-    })
+    body: JSON.stringify(dataNewCard)
   })
   .then(handleResponse)
 }
@@ -80,10 +77,7 @@ export const delCardOnServer = (cardId) => {
 
 //переключатель лайка
 export const toggleLike = (cardId, isLiked) => {
-  let method = 'PUT'
-  if(isLiked){
-    method = 'DELETE' 
-  }
+  const method = isLiked ? 'DELETE' : 'PUT';
 
   return fetch(config.baseUrl + '/cards/likes/' + cardId, {
     method: method,

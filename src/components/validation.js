@@ -42,12 +42,19 @@ const checkInvalidInput = (inputList) => {
   })
 }
 
-//активация/деактиция кнопки
+//отключение кнопки
+const disabledButton = (buttonElement, buttonClassInactive) => {
+  buttonElement.classList.add(buttonClassInactive);
+  buttonElement.disabled = true;
+}
+
+//переключение состояния кнопки
 const toggleButtonState = (inputList, buttonElement, buttonClassInactive) => {
   if(checkInvalidInput(inputList)){
-    buttonElement.classList.add(buttonClassInactive)
+    disabledButton(buttonElement, buttonClassInactive);
   } else {
-    buttonElement.classList.remove(buttonClassInactive)
+    buttonElement.classList.remove(buttonClassInactive);
+    buttonElement.disabled = false;
   }
 }
 
@@ -77,9 +84,10 @@ export function enableValidation(validationSetting){
 export function clearValidation(profileForm, validationConfig){
   const formElement = profileForm.querySelector(validationConfig.formSelector);
   const inputList = formElement.querySelectorAll(validationConfig.inputSelector);
+  const buttonForm = profileForm.querySelector(validationConfig.submitButtonSelector);
   inputList.forEach( inputElement =>{
     hideInputError(formElement, inputElement, validationConfig.inputErrorClass, validationConfig.errorClass);
   })
-  profileForm.querySelector(validationConfig.submitButtonSelector).classList.add(validationConfig.inactiveButtonClass);
+  disabledButton(buttonForm, validationConfig.inactiveButtonClass)
 }
 
